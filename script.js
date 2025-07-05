@@ -19,6 +19,7 @@ class ColorFlowGame {
         this.sources = [];
         this.gameRunning = false;
         this.isFlowing = false;
+        this.selectedSource = null; // 選択された色源泉
         this.init();
     }
 
@@ -60,6 +61,7 @@ class ColorFlowGame {
     generateLevel() {
         this.gameRunning = true;
         this.isFlowing = false;
+        this.selectedSource = null;
         this.moves = Math.max(5, 15 - this.level);
         this.sources = [];
         
@@ -124,22 +126,43 @@ class ColorFlowGame {
         if (!this.gameRunning || this.moves <= 0 || this.isFlowing) return;
         
         const tile = this.board[row][col];
-        if (!tile.isSource) return;
         
-        this.isFlowing = true;
-        this.flowColor(row, col);
-        this.moves--;
-        this.updateUI();
-        
-        // Wait for flow animation to complete before checking win condition
-        setTimeout(() => {
-            this.isFlowing = false;
-            if (this.checkWinCondition()) {
-                this.handleWin();
-            } else if (this.moves <= 0) {
-                this.handleGameOver();
+        // 第1段階: 色源泉を選択
+        if (this.selectedSource === null) {
+            if (tile.isSource) {
+                this.selectedSource = { row, col };
+                this.updateSourceSelection();
             }
-        }, 2000);
+            return;
+        }
+        
+        // 第2段階: 選択された色源泉から色を流す
+        if (this.selectedSource) {
+            // 同じ色源泉をクリックした場合は選択解除
+            if (this.selectedSource.row === row && this.selectedSource.col === col) {
+                this.selectedSource = null;
+                this.updateSourceSelection();
+                return;
+            }
+            
+            // 選択された色源泉から指定されたタイルに色を流す
+            this.isFlowing = true;
+            this.flowColorToTarget(this.selectedSource.row, this.selectedSource.col, row, col);
+            this.selectedSource = null;
+            this.updateSourceSelection();
+            this.moves--;
+            this.updateUI();
+            
+            // Wait for flow animation to complete before checking win condition
+            setTimeout(() => {
+                this.isFlowing = false;
+                if (this.checkWinCondition()) {
+                    this.handleWin();
+                } else if (this.moves <= 0) {
+                    this.handleGameOver();
+                }
+            }, 2000);
+        }
     }
 
     flowColor(sourceRow, sourceCol) {
@@ -206,6 +229,64 @@ class ColorFlowGame {
         }, 300);
     }
 
+    updateSourceSelection() {
+        // すべての色源泉の選択状態をクリア
+        for (const { row, col } of this.sources) {
+            this.board[row][col].element.classList.remove('selected');
+        }
+        
+        // 選択された色源泉にselectedクラスを追加
+        if (this.selectedSource) {
+            const { row, col } = this.selectedSource;
+            this.board[row][col].element.classList.add('selected');
+        }
+    }
+
+    flowColorToTarget(sourceRow, sourceCol, targetRow, targetCol) {
+        const sourceColor = this.board[sourceRow][sourceCol].color;
+        
+        // 直接指定されたタイルに色を流す
+        const targetColor = this.board[targetRow][targetCol].color;
+        const newColor = this.mixColors(targetColor, sourceColor);
+        
+        this.board[targetRow][targetCol].color = newColor;
+        this.board[targetRow][targetCol].element.style.backgroundColor = this.rgbToString(newColor);
+        this.board[targetRow][targetCol].element.classList.add('flowing');
+        
+        // Remove flowing class after animation
+        setTimeout(() => {
+            if (this.board[targetRow][targetCol].element) {
+                this.board[targetRow][targetCol].element.classList.remove('flowing');
+            }
+        }, 600);
+        
+        // 隣接するタイルにも色を流す（1レベルのみ）
+        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        for (const [dr, dc] of directions) {
+            const newRow = targetRow + dr;
+            const newCol = targetCol + dc;
+            
+            if (newRow >= 0 && newRow < this.boardSize && 
+                newCol >= 0 && newCol < this.boardSize) {
+                
+                const adjacentColor = this.board[newRow][newCol].color;
+                const adjacentNewColor = this.mixColors(adjacentColor, sourceColor);
+                
+                setTimeout(() => {
+                    this.board[newRow][newCol].color = adjacentNewColor;
+                    this.board[newRow][newCol].element.style.backgroundColor = this.rgbToString(adjacentNewColor);
+                    this.board[newRow][newCol].element.classList.add('flowing');
+                    
+                    setTimeout(() => {
+                        if (this.board[newRow][newCol].element) {
+                            this.board[newRow][newCol].element.classList.remove('flowing');
+                        }
+                    }, 600);
+                }, 200);
+            }
+        }
+    }
+
     checkWinCondition() {
         let targetTiles = 0;
         let totalTiles = 0;
@@ -246,6 +327,7 @@ class ColorFlowGame {
 
     reset() {
         this.isFlowing = false;
+        this.selectedSource = null;
         this.generateLevel();
         document.getElementById('gameOverModal').style.display = 'none';
         document.getElementById('successModal').style.display = 'none';
