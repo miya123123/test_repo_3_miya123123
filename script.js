@@ -18,6 +18,7 @@ class ColorFlowGame {
         this.colorNames = Object.keys(this.colors);
         this.sources = [];
         this.gameRunning = false;
+        this.isFlowing = false;
         this.init();
     }
 
@@ -58,6 +59,7 @@ class ColorFlowGame {
 
     generateLevel() {
         this.gameRunning = true;
+        this.isFlowing = false;
         this.moves = Math.max(5, 15 - this.level);
         this.sources = [];
         
@@ -119,37 +121,48 @@ class ColorFlowGame {
     }
 
     handleTileClick(row, col) {
-        if (!this.gameRunning || this.moves <= 0) return;
+        if (!this.gameRunning || this.moves <= 0 || this.isFlowing) return;
         
         const tile = this.board[row][col];
         if (!tile.isSource) return;
         
+        this.isFlowing = true;
         this.flowColor(row, col);
         this.moves--;
         this.updateUI();
         
+        // Wait for flow animation to complete before checking win condition
         setTimeout(() => {
+            this.isFlowing = false;
             if (this.checkWinCondition()) {
                 this.handleWin();
             } else if (this.moves <= 0) {
                 this.handleGameOver();
             }
-        }, 1000);
+        }, 2000);
     }
 
     flowColor(sourceRow, sourceCol) {
         const sourceColor = this.board[sourceRow][sourceCol].color;
         const visited = new Set();
-        const queue = [{ row: sourceRow, col: sourceCol, depth: 0 }];
+        const levelQueues = [[]];
         
-        while (queue.length > 0) {
-            const { row, col, depth } = queue.shift();
-            const key = `${row},${col}`;
-            
-            if (visited.has(key) || depth > 3) continue;
-            visited.add(key);
-            
-            // 現在のタイルの色を更新
+        // Start with the source tile
+        levelQueues[0].push({ row: sourceRow, col: sourceCol });
+        visited.add(`${sourceRow},${sourceCol}`);
+        
+        this.processFlowLevel(levelQueues, 0, sourceColor, visited);
+    }
+    
+    processFlowLevel(levelQueues, currentLevel, sourceColor, visited) {
+        if (currentLevel >= levelQueues.length || currentLevel > 3) return;
+        
+        const currentQueue = levelQueues[currentLevel];
+        if (currentQueue.length === 0) return;
+        
+        // Process all tiles in the current level
+        for (const { row, col } of currentQueue) {
+            // Update color
             const currentColor = this.board[row][col].color;
             const newColor = this.mixColors(currentColor, sourceColor);
             
@@ -157,23 +170,40 @@ class ColorFlowGame {
             this.board[row][col].element.style.backgroundColor = this.rgbToString(newColor);
             this.board[row][col].element.classList.add('flowing');
             
+            // Remove flowing class after animation
             setTimeout(() => {
-                this.board[row][col].element.classList.remove('flowing');
-            }, 500);
+                if (this.board[row][col].element) {
+                    this.board[row][col].element.classList.remove('flowing');
+                }
+            }, 600);
             
-            // 隣接するタイルを追加
+            // Add adjacent tiles to the next level
             const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
             for (const [dr, dc] of directions) {
                 const newRow = row + dr;
                 const newCol = col + dc;
+                const key = `${newRow},${newCol}`;
                 
                 if (newRow >= 0 && newRow < this.boardSize && 
                     newCol >= 0 && newCol < this.boardSize &&
-                    !visited.has(`${newRow},${newCol}`)) {
-                    queue.push({ row: newRow, col: newCol, depth: depth + 1 });
+                    !visited.has(key)) {
+                    
+                    visited.add(key);
+                    
+                    // Create next level queue if it doesn't exist
+                    if (!levelQueues[currentLevel + 1]) {
+                        levelQueues[currentLevel + 1] = [];
+                    }
+                    
+                    levelQueues[currentLevel + 1].push({ row: newRow, col: newCol });
                 }
             }
         }
+        
+        // Process next level after a delay
+        setTimeout(() => {
+            this.processFlowLevel(levelQueues, currentLevel + 1, sourceColor, visited);
+        }, 300);
     }
 
     checkWinCondition() {
@@ -215,6 +245,7 @@ class ColorFlowGame {
     }
 
     reset() {
+        this.isFlowing = false;
         this.generateLevel();
         document.getElementById('gameOverModal').style.display = 'none';
         document.getElementById('successModal').style.display = 'none';
