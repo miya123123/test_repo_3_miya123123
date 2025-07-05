@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Flow - 斬新なパズルゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌈 Color Flow</h1>
+            <p>色の流れを制御して、すべてのタイルを同じ色にしよう！</p>
+        </header>
+        
+        <div class="game-info">
+            <div class="level">レベル: <span id="level">1</span></div>
+            <div class="moves">残り手数: <span id="moves">10</span></div>
+            <div class="target">目標色: <span id="target-color" class="color-preview"></span></div>
+        </div>
+        
+        <div class="game-board" id="gameBoard">
+            <!-- ゲームボードはJavaScriptで生成 -->
+        </div>
+        
+        <div class="controls">
+            <button id="resetBtn">リセット</button>
+            <button id="nextLevelBtn" style="display: none;">次のレベル</button>
+            <button id="hintBtn">ヒント</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>遊び方:</h3>
+            <ul>
+                <li>色の源泉（光るタイル）をクリックして、隣接するタイルに色を流す</li>
+                <li>色が混ざると新しい色が生まれる</li>
+                <li>限られた手数で、すべてのタイルを目標色にしよう</li>
+                <li>レベルが上がるほど、より複雑なパズルになる</li>
+            </ul>
+        </div>
+        
+        <div class="modal" id="gameOverModal">
+            <div class="modal-content">
+                <h2 id="gameOverTitle">ゲームオーバー</h2>
+                <p id="gameOverMessage">手数が足りませんでした。もう一度挑戦しましょう！</p>
+                <button id="restartBtn">再開</button>
+            </div>
+        </div>
+        
+        <div class="modal" id="successModal">
+            <div class="modal-content">
+                <h2>🎉 クリア！</h2>
+                <p id="successMessage">素晴らしい！レベルをクリアしました！</p>
+                <button id="continueBtn">次のレベル</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
