@@ -25,7 +25,7 @@ Color Flowは、色の流れを制御して全てのタイルを同じ色にす�
 
 このゲームは GitHub Pages でホストされており、ブラウザで直接プレイできます。
 
-**🎮 [今すぐプレイ！](https://your-username.github.io/color-flow-game/)**
+**🎮 [今すぐプレイ！](https://miya123123.github.io/test_repo_3_miya123123/)**
 
 ## 🛠️ セットアップ手順
 
