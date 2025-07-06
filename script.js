@@ -20,6 +20,7 @@ class ColorFlowGame {
         this.gameRunning = false;
         this.isFlowing = false;
         this.selectedSource = null; // 選択された色源泉
+        this.glowingTiles = []; // 光るタイルを管理
         this.init();
     }
 
@@ -95,6 +96,9 @@ class ColorFlowGame {
             }
         }
         
+        // 初期光るタイルを設定
+        this.updateGlowingTiles();
+        
         this.updateUI();
     }
 
@@ -156,6 +160,8 @@ class ColorFlowGame {
             // Wait for flow animation to complete before checking win condition
             setTimeout(() => {
                 this.isFlowing = false;
+                // 色を流し込んだ後、光るタイルを更新
+                this.updateGlowingTiles();
                 if (this.checkWinCondition()) {
                     this.handleWin();
                 } else if (this.moves <= 0) {
@@ -332,6 +338,38 @@ class ColorFlowGame {
         document.getElementById('gameOverModal').style.display = 'none';
         document.getElementById('successModal').style.display = 'none';
         document.getElementById('nextLevelBtn').style.display = 'none';
+    }
+
+    updateGlowingTiles() {
+        // 前回の光るタイルから glow クラスを削除
+        this.glowingTiles.forEach(({row, col}) => {
+            if (this.board[row][col].element) {
+                this.board[row][col].element.classList.remove('glow');
+            }
+        });
+        
+        // 新しい光るタイルを選択（レベルに応じて1-4個）
+        const glowCount = Math.min(Math.floor(this.level / 2) + 1, 4);
+        this.glowingTiles = [];
+        
+        const availableTiles = [];
+        for (let row = 0; row < this.boardSize; row++) {
+            for (let col = 0; col < this.boardSize; col++) {
+                if (!this.board[row][col].isSource) {
+                    availableTiles.push({row, col});
+                }
+            }
+        }
+        
+        // ランダムに選択
+        for (let i = 0; i < glowCount && availableTiles.length > 0; i++) {
+            const randomIndex = Math.floor(Math.random() * availableTiles.length);
+            const selectedTile = availableTiles.splice(randomIndex, 1)[0];
+            this.glowingTiles.push(selectedTile);
+            
+            // glow クラスを追加
+            this.board[selectedTile.row][selectedTile.col].element.classList.add('glow');
+        }
     }
 
     showHint() {
