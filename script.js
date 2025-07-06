@@ -341,33 +341,35 @@ class ColorFlowGame {
         const bestSource = this.sources[Math.floor(Math.random() * this.sources.length)];
         const element = this.board[bestSource.row][bestSource.col].element;
         
-        element.style.animation = 'none';
-        setTimeout(() => {
-            element.style.animation = 'glow 0.5s ease-in-out 3';
-        }, 10);
+        // 一時的に超強力なグロー効果を追加
+        element.classList.add('hint-glow');
         
         // ヒントメッセージを表示
         const hint = document.createElement('div');
-        hint.textContent = '光っている色源泉をクリックしてみてください！';
+        hint.textContent = 'キラキラ✨と光っている色源泉をクリックしてみてください！';
         hint.style.cssText = `
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
-            padding: 15px 25px;
-            border-radius: 25px;
-            font-size: 16px;
+            padding: 20px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
             z-index: 999;
-            animation: fadeInOut 3s ease-in-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeInOut 4s ease-in-out;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         `;
         
         document.body.appendChild(hint);
         
         setTimeout(() => {
+            element.classList.remove('hint-glow');
             hint.remove();
-        }, 3000);
+        }, 4000);
     }
 
     updateUI() {
