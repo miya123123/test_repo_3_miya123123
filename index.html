@@ -3,57 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Flow - 斬新なパズルゲーム</title>
+    <title>元素戦士 - 斬新な格闘ゲーム</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌈 Color Flow</h1>
-            <p>色源泉を選択してから目標タイルをクリックして、色の流れを制御しよう！！！</p>
-        </header>
-        
-        <div class="game-info">
-            <div class="level">レベル: <span id="level">1</span></div>
-            <div class="moves">残り手数: <span id="moves">10</span></div>
-            <div class="target">目標色: <span id="target-color" class="color-preview"></span></div>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>⚔️ 元素戦士 ⚔️</h1>
+            <p>4つの元素の力を操る斬新な格闘ゲーム</p>
         </div>
         
-        <div class="game-board" id="gameBoard">
-            <!-- ゲームボードはJavaScriptで生成 -->
+        <div class="game-arena">
+            <div class="background-effects"></div>
+            
+            <!-- プレイヤー1 -->
+            <div class="fighter" id="player1">
+                <div class="fighter-sprite"></div>
+                <div class="health-bar">
+                    <div class="health-fill" id="p1-health"></div>
+                </div>
+                <div class="fighter-name">プレイヤー1</div>
+                <div class="element-orbs">
+                    <div class="orb fire" data-element="fire">🔥</div>
+                    <div class="orb water" data-element="water">💧</div>
+                    <div class="orb earth" data-element="earth">🌍</div>
+                    <div class="orb air" data-element="air">💨</div>
+                </div>
+            </div>
+            
+            <!-- プレイヤー2 -->
+            <div class="fighter" id="player2">
+                <div class="fighter-sprite"></div>
+                <div class="health-bar">
+                    <div class="health-fill" id="p2-health"></div>
+                </div>
+                <div class="fighter-name">プレイヤー2</div>
+                <div class="element-orbs">
+                    <div class="orb fire" data-element="fire">🔥</div>
+                    <div class="orb water" data-element="water">💧</div>
+                    <div class="orb earth" data-element="earth">🌍</div>
+                    <div class="orb air" data-element="air">💨</div>
+                </div>
+            </div>
+            
+            <!-- 特殊効果エリア -->
+            <div class="effects-layer" id="effects"></div>
+            
+            <!-- 中央の元素エネルギー -->
+            <div class="central-energy">
+                <div class="energy-core"></div>
+                <div class="energy-rings"></div>
+            </div>
         </div>
         
-        <div class="controls">
+        <div class="game-ui">
+            <div class="round-info">
+                <div class="round-timer" id="timer">60</div>
+                <div class="round-counter">ラウンド <span id="round">1</span></div>
+            </div>
+            
+            <div class="combo-indicators">
+                <div class="combo-display" id="p1-combo">
+                    <div class="combo-text">コンボ</div>
+                    <div class="combo-count">0</div>
+                </div>
+                <div class="combo-display" id="p2-combo">
+                    <div class="combo-text">コンボ</div>
+                    <div class="combo-count">0</div>
+                </div>
+            </div>
+            
+            <div class="special-gauge">
+                <div class="gauge-label">必殺技ゲージ</div>
+                <div class="gauge-bars">
+                    <div class="gauge-bar" id="p1-special">
+                        <div class="gauge-fill"></div>
+                    </div>
+                    <div class="gauge-bar" id="p2-special">
+                        <div class="gauge-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-info">
+            <div class="control-section">
+                <h3>プレイヤー1</h3>
+                <div class="controls">
+                    <span>移動: A/D</span>
+                    <span>攻撃: W</span>
+                    <span>防御: S</span>
+                    <span>元素: 1/2/3/4</span>
+                </div>
+            </div>
+            <div class="control-section">
+                <h3>プレイヤー2</h3>
+                <div class="controls">
+                    <span>移動: ←/→</span>
+                    <span>攻撃: ↑</span>
+                    <span>防御: ↓</span>
+                    <span>元素: 7/8/9/0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-buttons">
+            <button id="startBtn">ゲーム開始</button>
             <button id="resetBtn">リセット</button>
-            <button id="nextLevelBtn" style="display: none;">次のレベル</button>
-            <button id="hintBtn">ヒント</button>
+            <button id="pauseBtn">一時停止</button>
         </div>
-        
-        <div class="instructions">
-            <h3>遊び方:</h3>
-            <ul>
-                <li>まず色の源泉（光るタイル）をクリックして選択する</li>
-                <li>次に任意のタイルをクリックして、選択された源泉から色を流す</li>
-                <li>色が混ざると新しい色が生まれる</li>
-                <li>限られた手数で、すべてのタイルを目標色にしよう</li>
-                <li>レベルが上がるほど、より複雑なパズルになる</li>
-            </ul>
-        </div>
-        
-        <div class="modal" id="gameOverModal">
-            <div class="modal-content">
-                <h2 id="gameOverTitle">ゲームオーバー</h2>
-                <p id="gameOverMessage">手数が足りませんでした。もう一度挑戦しましょう！</p>
-                <button id="restartBtn">再開</button>
-            </div>
-        </div>
-        
-        <div class="modal" id="successModal">
-            <div class="modal-content">
-                <h2>🎉 クリア！</h2>
-                <p id="successMessage">素晴らしい！レベルをクリアしました！</p>
-                <button id="continueBtn">次のレベル</button>
-            </div>
+    </div>
+    
+    <!-- ゲーム状態モーダル -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">ゲーム開始</h2>
+            <p id="modalMessage">戦闘の準備はいいですか？</p>
+            <button id="modalBtn">開始</button>
         </div>
     </div>
     
